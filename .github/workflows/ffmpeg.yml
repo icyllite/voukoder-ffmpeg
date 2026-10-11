@@ -52,7 +52,7 @@ on:
         
 env:
   vsPath: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\
-  COMPONENTS: "--enable-libmfx --enable-libsvtav1 --enable-libsnappy --enable-libmp3lame --enable-libzimg --enable-libvorbis --enable-libopus --enable-libvpx --enable-libx264 --enable-libx265 --enable-libfdk-aac"
+  COMPONENTS: "--enable-libmfx --enable-libsnappy --enable-libmp3lame --enable-libzimg --enable-libvorbis --enable-libopus --enable-libx264 --enable-libx265 --enable-libfdk-aac"
   NASM_EXECUTABLE: nasm
   cFlags: ${{ inputs.config == 'release' && '-MD' || '-MDd' }}
   variant: ${{ inputs.type == 'static' && ' --pkg-config-flags="--static" --disable-shared --enable-static' || ' --disable-static --enable-shared' }}
@@ -78,15 +78,6 @@ jobs:
         libvorbis_refId: v1.3.7
         config: ${{ inputs.config }}
                
-  libsvtav1:
-    runs-on: ${{ inputs.system }}
-    steps:
-    - uses: actions/checkout@v3
-    - uses: ./.github/actions/libsvtav1
-      with:
-        refId: v2.3.0
-        config: ${{ inputs.config }}
-
   libsnappy:
     runs-on: ${{ inputs.system }}
     steps:
@@ -94,15 +85,6 @@ jobs:
     - uses: ./.github/actions/libsnappy
       with:
         refId: 1.1.10
-        config: ${{ inputs.config }}
-
-  libvpx:
-    runs-on: ${{ inputs.system }}
-    steps:
-    - uses: actions/checkout@v3
-    - uses: ./.github/actions/libvpx
-      with:
-        refId: v1.13.1
         config: ${{ inputs.config }}
 
   libmp3lame:
@@ -180,7 +162,7 @@ jobs:
 
   ffmpeg:
     runs-on: ${{ inputs.system }}
-    needs: [libmfx,libsvtav1,libsnappy,libvpx,libmp3lame,libzimg,liboggvorbis,libopus,libfdkaac,libx264,libx265]
+    needs: [libmfx,libsnappy,libmp3lame,libzimg,liboggvorbis,libopus,libfdkaac,libx264,libx265]
     steps:
     - name: Set up MSYS2
       uses: msys2/setup-msys2@v2

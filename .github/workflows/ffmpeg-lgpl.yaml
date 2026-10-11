@@ -52,7 +52,7 @@ on:
         
 env:
   vsPath: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\
-  COMPONENTS: "--enable-libmfx --enable-libsvtav1 --enable-libsnappy --enable-libmp3lame --enable-libzimg --enable-libvpx --enable-libopus"
+  COMPONENTS: "--enable-libmfx --enable-libsnappy --enable-libmp3lame --enable-libzimg --enable-libopus"
   #--enable-libvorbis
   NASM_EXECUTABLE: nasm
   cFlags: ${{ inputs.config == 'release' && '-MD' || '-MDd' }}
@@ -78,15 +78,6 @@ jobs:
   #      libogg_refId: v1.3.5
   #      libvorbis_refId: v1.3.7
   #      config: ${{ inputs.config }}
-               
-  libsvtav1:
-    runs-on: ${{ inputs.system }}
-    steps:
-    - uses: actions/checkout@v3
-    - uses: ./.github/actions/libsvtav1
-      with:
-        refId: v1.4.1
-        config: ${{ inputs.config }}
 
   libsnappy:
     runs-on: ${{ inputs.system }}
@@ -95,15 +86,6 @@ jobs:
     - uses: ./.github/actions/libsnappy
       with:
         refId: 1.1.9
-        config: ${{ inputs.config }}
-
-  libvpx:
-    runs-on: ${{ inputs.system }}
-    steps:
-    - uses: actions/checkout@v3
-    - uses: ./.github/actions/libvpx
-      with:
-        refId: v1.13.0
         config: ${{ inputs.config }}
 
   libmp3lame:
@@ -144,7 +126,7 @@ jobs:
 
   ffmpeg:
     runs-on: ${{ inputs.system }}
-    needs: [libmfx,libsvtav1,libsnappy,libvpx,libmp3lame,libzimg,libopus]
+    needs: [libmfx,libsnappy,libmp3lame,libzimg,libopus]
     #libkvazaar,liboggvorbis
     steps:
     - name: Set up MSYS2
