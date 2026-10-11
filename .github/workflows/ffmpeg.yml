@@ -32,7 +32,7 @@ on:
       ffmpegRef:
         type: string
         required: true
-        default: 'release/7.1' 
+        default: 'release/5.1' 
         description: 'FFmpeg refId'
         
   workflow_call:
@@ -52,18 +52,18 @@ on:
         
 env:
   vsPath: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\
-  COMPONENTS: "--enable-libvpl --enable-libsvtav1 --enable-libsnappy --enable-libmp3lame --enable-libzimg --enable-libvorbis --enable-libopus --enable-libvpx --enable-libx264 --enable-libx265 --enable-libfdk-aac"
+  COMPONENTS: "--enable-libmfx --enable-libsvtav1 --enable-libsnappy --enable-libmp3lame --enable-libzimg --enable-libvorbis --enable-libopus --enable-libvpx --enable-libx264 --enable-libx265 --enable-libfdk-aac"
   NASM_EXECUTABLE: nasm
   cFlags: ${{ inputs.config == 'release' && '-MD' || '-MDd' }}
   variant: ${{ inputs.type == 'static' && ' --pkg-config-flags="--static" --disable-shared --enable-static' || ' --disable-static --enable-shared' }}
   msbuildConfig: ${{ inputs.config == 'release' && 'Release' || 'Debug' }}
 
 jobs:
-  libvpl:
+  libmfx:
     runs-on: ${{ inputs.system }}
     steps:
     - uses: actions/checkout@v3
-    - uses: ./.github/actions/libvpl
+    - uses: ./.github/actions/libmfx
       with:
         refId: v2023.4.0
         config: ${{ inputs.config }}
@@ -180,7 +180,7 @@ jobs:
 
   ffmpeg:
     runs-on: ${{ inputs.system }}
-    needs: [libvpl,libsvtav1,libsnappy,libvpx,libmp3lame,libzimg,liboggvorbis,libopus,libfdkaac,libx264,libx265]
+    needs: [libmfx,libsvtav1,libsnappy,libvpx,libmp3lame,libzimg,liboggvorbis,libopus,libfdkaac,libx264,libx265]
     steps:
     - name: Set up MSYS2
       uses: msys2/setup-msys2@v2
