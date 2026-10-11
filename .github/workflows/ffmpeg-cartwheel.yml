@@ -46,7 +46,7 @@ on:
         
 env:
   vsPath: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\
-  COMPONENTS: "--enable-libmfx --enable-libsnappy --enable-libmp3lame --enable-libzimg --enable-libopus --enable-libvorbis --enable-libx264 --enable-libx265 --enable-libfdk-aac "
+  COMPONENTS: "--enable-libmfx --enable-libsnappy --enable-libmp3lame --enable-libzimg --enable-libopus --enable-libvorbis --enable-libx264 --enable-libx265 "
   NASM_EXECUTABLE: nasm
   cFlags: ${{ inputs.config == 'release' && '-MD' || '-MDd' }}
   variant: ${{ inputs.type == 'static' && ' --pkg-config-flags="--static" --disable-shared --enable-static' || ' --disable-static --enable-shared' }}
@@ -108,15 +108,6 @@ jobs:
         refId: v1.3.1
         config: ${{ inputs.config }}
 
-  libfdkaac:
-    runs-on: ${{ inputs.system }}
-    steps:
-    - uses: actions/checkout@v3
-    - uses: ./.github/actions/libfdkaac
-      with:
-        refId: v2.0.2
-        config: ${{ inputs.config }}
-
   libx264:
     runs-on: ${{ inputs.system }}
     steps:
@@ -156,7 +147,7 @@ jobs:
 
   cartwheel:
     runs-on: ${{ inputs.system }}
-    needs: [libmfx,libopus,libsnappy,libmp3lame,libzimg,liboggvorbis,libx264,libx265,libfdkaac]
+    needs: [libmfx,libopus,libsnappy,libmp3lame,libzimg,liboggvorbis,libx264,libx265]
     steps:
     - name: Set up MSYS2
       uses: msys2/setup-msys2@v2
