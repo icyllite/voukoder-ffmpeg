@@ -67,6 +67,7 @@ jobs:
       with:
         refId: v2023.4.0
         config: ${{ inputs.config }}
+        system: ${{ inputs.system }}
 
   liboggvorbis:
     runs-on: ${{ inputs.system }}
@@ -77,6 +78,7 @@ jobs:
         libogg_refId: v1.3.5
         libvorbis_refId: v1.3.7
         config: ${{ inputs.config }}
+        system: ${{ inputs.system }}
                
   libsnappy:
     runs-on: ${{ inputs.system }}
@@ -86,6 +88,7 @@ jobs:
       with:
         refId: 1.1.10
         config: ${{ inputs.config }}
+        system: ${{ inputs.system }}
 
   libmp3lame:
     runs-on: ${{ inputs.system }}
@@ -95,6 +98,7 @@ jobs:
       with:
         refId: tags/RELEASE__3_100
         config: ${{ inputs.config }}
+        system: ${{ inputs.system }}
 
   libzimg:
     runs-on: ${{ inputs.system }}
@@ -104,6 +108,7 @@ jobs:
       with:
         refId: release-3.0.5
         config: ${{ inputs.config }}
+        system: ${{ inputs.system }}
 
   libopus:
     runs-on: ${{ inputs.system }}
@@ -113,6 +118,7 @@ jobs:
       with:
         refId: v1.4
         config: ${{ inputs.config }}
+        system: ${{ inputs.system }}
 
   libx264:
     runs-on: ${{ inputs.system }}
@@ -122,6 +128,7 @@ jobs:
       with:
         refId: stable
         config: ${{ inputs.config }}
+        system: ${{ inputs.system }}
 
   libx265-12:
     runs-on: ${{ inputs.system }}
@@ -131,6 +138,7 @@ jobs:
       with:
         refId: Release_3.5
         config: ${{ inputs.config }}
+        system: ${{ inputs.system }}
 
   libx265-10:
     runs-on: ${{ inputs.system }}
@@ -140,6 +148,7 @@ jobs:
       with:
         refId: Release_3.5
         config: ${{ inputs.config }}
+        system: ${{ inputs.system }}
 
   libx265:
     runs-on: ${{ inputs.system }}
@@ -150,6 +159,7 @@ jobs:
       with:
         refId: Release_3.5
         config: ${{ inputs.config }}
+        system: ${{ inputs.system }}
 
   ffmpeg:
     runs-on: ${{ inputs.system }}
@@ -168,29 +178,40 @@ jobs:
         git config --global user.name "Daniel Stankewitz"
     - name: Checkout patches
       uses: actions/checkout@v3.0.0
+    - name: Restore cached FFmpeg build
+      id: cache
+      uses: actions/cache@v4
+      with:
+        path: dist
+        key: ffmpeg-${{ inputs.system }}-${{ inputs.type }}-${{ inputs.config }}-${{ inputs.ffmpegRef }}-v1-${{ hashFiles('.github/workflows/ffmpeg.yml', '.github/actions/*/action.yml') }}
     - name: Checkout FFmpeg
+      if: steps.cache.outputs.cache-hit != 'true'
       uses: actions/checkout@v3.0.0
       with:
         repository: FFmpeg/FFmpeg.git
         ref: ${{ inputs.ffmpegRef }} 
         path: ffmpeg
     - name: Checkout NvEnc
+      if: steps.cache.outputs.cache-hit != 'true'
       uses: actions/checkout@v3.0.0
       with:
         repository: FFmpeg/nv-codec-headers
         ref: master
         path: nvenc
     - name: Checkout AMF
+      if: steps.cache.outputs.cache-hit != 'true'
       uses: actions/checkout@v3.0.0
       with:
         repository: GPUOpen-LibrariesAndSDKs/AMF
         ref: master
         path: amf
     - name: Set up artifacts
+      if: steps.cache.outputs.cache-hit != 'true'
       uses: actions/download-artifact@v4
       with:
         path: build_artifacts
     - name: Build FFmpeg
+      if: steps.cache.outputs.cache-hit != 'true'
       shell: cmd
       run: |
         call "${{ env.vsPath }}VC\Auxiliary\Build\vcvars64.bat"

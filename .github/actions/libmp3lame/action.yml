@@ -7,16 +7,28 @@ inputs:
   config:
     type: string
     required: true
+  system:
+    type: string
+    required: false
+    default: 'windows-2022'
 
 runs:
   using: "composite"
   steps:
+  - name: Restore cached build
+    id: cache
+    uses: actions/cache@v4
+    with:
+      path: dist
+      key: libmp3lame-${{ inputs.system }}-${{ inputs.config }}-${{ inputs.refId }}-v1-${{ hashFiles('.github/actions/libmp3lame/action.yml') }}
   - name: Set up MSYS2
+    if: steps.cache.outputs.cache-hit != 'true'
     uses: msys2/setup-msys2@v2
     with:
       install: base-devel binutils autotools automake mingw-w64-x86_64-cmake nasm svn
       path-type: inherit
   - name: Build LAME
+    if: steps.cache.outputs.cache-hit != 'true'
     shell: cmd
     env:
       vsPath: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\

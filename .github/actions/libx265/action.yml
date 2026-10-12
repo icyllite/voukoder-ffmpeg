@@ -7,30 +7,46 @@ inputs:
   config:
     type: string
     required: true
+  system:
+    type: string
+    required: false
+    default: 'windows-2022'
 
 runs:
   using: "composite"
   steps:
+  - name: Restore cached build
+    id: cache
+    uses: actions/cache@v4
+    with:
+      path: di
+      key: libx265-${{ inputs.system }}-${{ inputs.config }}-${{ inputs.refId }}-v1-${{ hashFiles('.github/actions/libx265/action.yml') }}
   - name: Checkout X265
+    if: steps.cache.outputs.cache-hit != 'true'
     shell: cmd
     run: |
       git config --global core.autocrlf false
       git config --global core.eol lf
-      git clone -b Release_3.5 https://github.com/videolan/x265.git x265
+      git clone -b ${{ inputs.refId }} https://github.com/videolan/x265.git x265
   - name: Set up MSYS2
+    if: steps.cache.outputs.cache-hit != 'true'
     uses: msys2/setup-msys2@v2
     with:
       install: base-devel binutils autotools automake
       path-type: inherit
   - name: Set up MSBuild
+    if: steps.cache.outputs.cache-hit != 'true'
     uses: microsoft/setup-msbuild@v1.1
   - name: Set up NASM
+    if: steps.cache.outputs.cache-hit != 'true'
     uses: ilammy/setup-nasm@v1.2.1
   - name: Set up dependant libs
+    if: steps.cache.outputs.cache-hit != 'true'
     uses: actions/download-artifact@v4
     with:
       path: build
   - name: Build X265
+    if: steps.cache.outputs.cache-hit != 'true'
     shell: cmd
     env:
       vsPath: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\

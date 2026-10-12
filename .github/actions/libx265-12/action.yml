@@ -7,21 +7,35 @@ inputs:
   config:
     type: string
     required: true
+  system:
+    type: string
+    required: false
+    default: 'windows-2022'
 
 runs:
   using: "composite"
   steps:
+  - name: Restore cached build
+    id: cache
+    uses: actions/cache@v4
+    with:
+      path: dist
+      key: x265_12bit-${{ inputs.system }}-${{ inputs.config }}-${{ inputs.refId }}-v1-${{ hashFiles('.github/actions/libx265-12/action.yml') }}
   - name: Checkout X265
+    if: steps.cache.outputs.cache-hit != 'true'
     shell: cmd
     run: |
       git config --global core.autocrlf false
       git config --global core.eol lf
       git clone -b ${{ inputs.refId }} https://github.com/videolan/x265.git x265
   - name: Set up MSBuild
+    if: steps.cache.outputs.cache-hit != 'true'
     uses: microsoft/setup-msbuild@v1.1
   - name: Set up NASM
+    if: steps.cache.outputs.cache-hit != 'true'
     uses: ilammy/setup-nasm@v1.2.1
   - name: Build X265 (12 bit)
+    if: steps.cache.outputs.cache-hit != 'true'
     shell: cmd
     env:
       vsPath: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\

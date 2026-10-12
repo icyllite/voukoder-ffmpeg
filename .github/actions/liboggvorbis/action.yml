@@ -10,33 +10,48 @@ inputs:
   config:
     type: string
     required: true
-  
+  system:
+    type: string
+    required: false
+    default: 'windows-2022'
+
 runs:
   using: "composite"
   steps:
+  - name: Restore cached build
+    id: cache
+    uses: actions/cache@v4
+    with:
+      path: dist
+      key: liboggvorbis-${{ inputs.system }}-${{ inputs.config }}-${{ inputs.libogg_refId }}-${{ inputs.libvorbis_refId }}-v1-${{ hashFiles('.github/actions/liboggvorbis/action.yml') }}
   - name: Set up GIT
+    if: steps.cache.outputs.cache-hit != 'true'
     shell: cmd
     run: |
       git config --global core.autocrlf false
       git config --global core.eol lf
   - name: Checkout Ogg
+    if: steps.cache.outputs.cache-hit != 'true'
     uses: actions/checkout@v3
     with:
       repository: xiph/ogg
       ref: ${{ inputs.libogg_refId }}
       path: ogg
   - name: Checkout Vorbis
+    if: steps.cache.outputs.cache-hit != 'true'
     uses: actions/checkout@v3.0.0
     with:
       repository: xiph/vorbis
       ref: ${{ inputs.libvorbis_refId }}
       path: vorbis
   - name: Set up MSYS2
+    if: steps.cache.outputs.cache-hit != 'true'
     uses: msys2/setup-msys2@v2
     with:
       install: base-devel binutils autotools automake
       path-type: inherit
   - name: Build Ogg
+    if: steps.cache.outputs.cache-hit != 'true'
     shell: cmd
     env:
       vsPath: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\
@@ -46,6 +61,7 @@ runs:
       md build
       D:\a\_temp\setup-msys2\msys2.cmd -c 'cd ogg ; autoreconf -i ; CC=cl.exe CXX=cl.exe CXXFLAGS=${{ env.cFlags }} ./configure --prefix=$(realpath ../build) --disable-shared ; make -j ; make install'
   - name: Build Vorbis
+    if: steps.cache.outputs.cache-hit != 'true'
     shell: cmd
     env:
       vsPath: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\
