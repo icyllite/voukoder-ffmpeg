@@ -52,7 +52,7 @@ on:
         
 env:
   vsPath: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\
-  COMPONENTS: "--enable-libmfx --enable-libsnappy --enable-libmp3lame --enable-libzimg --enable-libvorbis --enable-libopus --enable-libx264 --enable-libx265"
+  COMPONENTS: "--enable-libmfx --enable-libsnappy --enable-libmp3lame --enable-libzimg --enable-libvorbis --enable-libopus --enable-libx264 --enable-libx265 --enable-libfdk-aac"
   NASM_EXECUTABLE: nasm
   cFlags: ${{ inputs.config == 'release' && '-MD' || '-MDd' }}
   variant: ${{ inputs.type == 'static' && ' --pkg-config-flags="--static" --disable-shared --enable-static' || ' --disable-static --enable-shared' }}
@@ -120,6 +120,16 @@ jobs:
         config: ${{ inputs.config }}
         system: ${{ inputs.system }}
 
+  libfdkaac:
+    runs-on: ${{ inputs.system }}
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ./.github/actions/libfdkaac
+      with:
+        refId: v2.0.2
+        config: ${{ inputs.config }}
+        system: ${{ inputs.system }}
+
   libx264:
     runs-on: ${{ inputs.system }}
     steps:
@@ -163,7 +173,7 @@ jobs:
 
   ffmpeg:
     runs-on: ${{ inputs.system }}
-    needs: [libmfx,libsnappy,libmp3lame,libzimg,liboggvorbis,libopus,libx264,libx265]
+    needs: [libmfx,libsnappy,libmp3lame,libzimg,liboggvorbis,libopus,libfdkaac,libx264,libx265]
     steps:
     - name: Set up MSYS2
       uses: msys2/setup-msys2@v2
@@ -183,7 +193,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: dist
-        key: ffmpeg-${{ inputs.system }}-${{ inputs.type }}-${{ inputs.config }}-${{ inputs.ffmpegRef }}-v1-${{ hashFiles('.github/workflows/ffmpeg.yml', '.github/actions/*/action.yml') }}
+        key: ffmpeg-${{ inputs.system }}-${{ inputs.type }}-${{ inputs.config }}-${{ inputs.ffmpegRef }}-v2-${{ hashFiles('.github/workflows/ffmpeg.yml', '.github/actions/*/action.yml', 'libfdkaac.patch') }}
     - name: Checkout FFmpeg
       if: steps.cache.outputs.cache-hit != 'true'
       uses: actions/checkout@v3.0.0
@@ -216,7 +226,7 @@ jobs:
       run: |
         call "${{ env.vsPath }}VC\Auxiliary\Build\vcvars64.bat"
         md build dist
-        D:\a\_temp\setup-msys2\msys2.cmd -c 'cd ffmpeg ; cd ../build ; for file in `ls ../build_artifacts/**/*.tgz`; do tar -xzf $file; done ; rm -f bin/*.dll ; cd ../nvenc ; make PREFIX=../build install ; cp -a ../amf/amf/public/include ../build/include/AMF ; cd ../ffmpeg ; PKG_CONFIG_PATH=../build/lib/pkgconfig ./configure --toolchain=msvc --extra-cflags="${{ env.cFlags }} -I../build/include" --extra-ldflags="-LIBPATH:../build/lib" --prefix=../build --extra-libs=Ole32.lib --extra-libs=Advapi32.lib --disable-doc ${{ env.variant }} --enable-runtime-cpudetect --enable-w32threads --enable-gpl ${{ env.COMPONENTS }} ; make -j 2 ; make install ; cd ../build/lib ; for file in *.a; do mv "$file" "`basename "$file" .a`.lib" ; done ; rm -rf fdk-aac.lib cmake pkgconfig *.la ../share ; cd .. ; tar czf ../dist/ffmpeg-win64-${{ inputs.type }}-${{ inputs.config }}.tar.gz *'
+        D:\a\_temp\setup-msys2\msys2.cmd -c 'cd ffmpeg ; git apply --ignore-whitespace ../libfdkaac.patch ; cd ../build ; for file in `ls ../build_artifacts/**/*.tgz`; do tar -xzf $file; done ; rm -f bin/*.dll ; cd ../nvenc ; make PREFIX=../build install ; cp -a ../amf/amf/public/include ../build/include/AMF ; cd ../ffmpeg ; PKG_CONFIG_PATH=../build/lib/pkgconfig ./configure --toolchain=msvc --extra-cflags="${{ env.cFlags }} -I../build/include" --extra-ldflags="-LIBPATH:../build/lib" --prefix=../build --extra-libs=Ole32.lib --extra-libs=Advapi32.lib --disable-doc ${{ env.variant }} --enable-runtime-cpudetect --enable-w32threads --enable-gpl ${{ env.COMPONENTS }} ; make -j 2 ; make install ; cd ../build/lib ; for file in *.a; do mv "$file" "`basename "$file" .a`.lib" ; done ; rm -rf fdk-aac.lib libfdk_aac.lib cmake pkgconfig *.la ../share ; cd .. ; tar czf ../dist/ffmpeg-win64-${{ inputs.type }}-${{ inputs.config }}.tar.gz *'
     - name: Publish FFmpeg artifacts
       uses: actions/upload-artifact@v4
       with:
