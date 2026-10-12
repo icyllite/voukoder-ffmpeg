@@ -53,7 +53,7 @@ runs:
     run: |
       call "${{ env.vsPath }}VC\Auxiliary\Build\vcvars64.bat"
       md dist
-      D:\a\_temp\setup-msys2\msys2.cmd -c 'cd vorbis ; autoreconf -i ; CC=cl.exe CXX=cl.exe CXXFLAGS=${{ env.cFlags }} ./configure --prefix=$(realpath ../build) --disable-shared ; make -j ; make install ; sed -i '/^Libs\.private.*/d' ../build/lib/pkgconfig/vorbis.pc ; cd ../build ; tar czf ../dist/liboggvorbis.tgz *'
+      D:\a\_temp\setup-msys2\msys2.cmd -c 'cd vorbis ; autoreconf -i ; CC=cl.exe CXX=cl.exe CXXFLAGS=${{ env.cFlags }} ./configure --prefix=$(realpath ../build) --disable-shared ; make -j ; make install ; sed -i -e "s/^Requires\.private:/Requires:/" -e "/^Libs\.private.*/d" ../build/lib/pkgconfig/*.pc ; cd ../build ; tar czf ../dist/liboggvorbis.tgz *'
   - name: Publish artifact
     uses: actions/upload-artifact@v4
     with:
